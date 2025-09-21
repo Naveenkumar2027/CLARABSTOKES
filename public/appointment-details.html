@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Details - Sai Vidya Institute of Technology</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Left Panel - Appointment Details (65% width) */
+        .appointment-panel {
+            width: 65%;
+            background-color: #f5f5dc; /* Light beige/off-white */
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .appointment-header {
+            font-size: 32px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        .appointment-details-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 10px;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+        }
+
+        .appointment-info {
+            font-size: 16px;
+            color: #000;
+            line-height: 1.8;
+        }
+
+        .appointment-info p {
+            margin-bottom: 8px;
+        }
+
+        .appointment-info strong {
+            font-weight: bold;
+        }
+
+        .appointment-footer {
+            margin-top: auto;
+            text-align: left;
+        }
+
+        .footer-thank-you {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .footer-great-day {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 20px;
+        }
+
+        .footer-clara {
+            font-size: 16px;
+            font-weight: normal;
+            color: #000;
+        }
+
+        /* Right Panel - Branding (35% width) */
+        .branding-panel {
+            width: 35%;
+            background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .circular-logo {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2c5aa0 0%, #1e3a8a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .outer-ring {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 3px solid #1e3a8a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .outer-ring-text {
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+            padding: 0 10px;
+        }
+
+        .inner-ring {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            right: 30px;
+            bottom: 30px;
+            border: 2px solid #4a90e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .inner-ring-text {
+            color: white;
+            font-size: 8px;
+            text-align: center;
+            line-height: 1.1;
+            padding: 0 5px;
+        }
+
+        .logo-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .sun-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(45deg, #ffa500, #ff8c00);
+            border-radius: 50%;
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .sun-icon::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,165,0,0.3) 0%, transparent 70%);
+        }
+
+        .book-icon {
+            width: 25px;
+            height: 15px;
+            background: white;
+            border-radius: 2px;
+            position: relative;
+            margin-bottom: 3px;
+        }
+
+        .book-icon::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 1px solid #ddd;
+            border-radius: 1px;
+        }
+
+        .flame-icon {
+            width: 8px;
+            height: 12px;
+            background: linear-gradient(45deg, #ff4444, #ff6666);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: relative;
+        }
+
+        .flame-icon::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 6px;
+            background: linear-gradient(45deg, #ffaa00, #ff6666);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        }
+
+        .logo-banner {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .logo-banner h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .logo-banner p {
+            color: white;
+            font-size: 12px;
+        }
+
+        .vertical-text {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%) rotate(90deg);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            white-space: nowrap;
+            letter-spacing: 2px;
+        }
+
+        /* Loading state */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #f5f5dc;
+            font-size: 18px;
+            color: #666;
+        }
+
+        /* Error state */
+        .error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #f5f5dc;
+            color: #e53e3e;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .error h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .error p {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .appointment-panel {
+                width: 100%;
+                height: 70%;
+            }
+            
+            .branding-panel {
+                width: 100%;
+                height: 30%;
+                flex-direction: row;
+                padding: 20px;
+            }
+            
+            .vertical-text {
+                position: static;
+                transform: none;
+                writing-mode: vertical-rl;
+                text-orientation: mixed;
+            }
+            
+            .circular-logo {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div>Loading appointment details...</div>
+    </div>
+
+    <div id="error" class="error" style="display: none;">
+        <h2>❌ Invalid Appointment</h2>
+        <p>This QR code does not contain valid appointment information.</p>
+        <p>Please contact the reception for assistance.</p>
+    </div>
+
+    <div id="appointment-container" style="display: none;">
+        <!-- Left Panel - Appointment Details -->
+        <div class="appointment-panel">
+            <div class="appointment-header">
+                Your Appointment as been confirmed!!
+            </div>
+            
+            <div class="appointment-details-section">
+                <div class="section-title">APPOINTMENT DETAILS</div>
+                <div class="appointment-info" id="appointment-info">
+                    <!-- Appointment details will be populated here -->
+                </div>
+            </div>
+            
+            <div class="appointment-footer">
+                <div class="footer-thank-you">THANK YOU !!</div>
+                <div class="footer-great-day">HAVE A GREAT DAY !!</div>
+                <div class="footer-clara">CLARA - YOUR FRIENDLY AI RECEPTIONIST</div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Branding -->
+        <div class="branding-panel">
+            <div class="logo-container">
+                <div class="circular-logo">
+                    <div class="outer-ring">
+                        <div class="outer-ring-text">SAI VIDYA INSTITUTE OF TECHNOLOGY</div>
+                    </div>
+                    <div class="inner-ring">
+                        <div class="inner-ring-text">श्रद्धावान लभते ज्ञानं</div>
+                    </div>
+                    <div class="logo-center">
+                        <div class="sun-icon"></div>
+                        <div class="book-icon"></div>
+                        <div class="flame-icon"></div>
+                    </div>
+                </div>
+                <div class="logo-banner">
+                    <h3>SVIT</h3>
+                    <p>Learn to Lead</p>
+                </div>
+            </div>
+            <div class="vertical-text">SAI VIDYA INSTITUTE OF TECHNOLOGYY</div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch appointment data from server
+        async function fetchAppointmentData() {
+            try {
+                // Get appointment ID from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const appointmentId = urlParams.get('id');
+                
+                if (!appointmentId) {
+                    throw new Error('No appointment ID found');
+                }
+
+                // Fetch appointment data from server
+                const response = await fetch(`/api/appointment/${appointmentId}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Appointment not found or expired');
+                    }
+                    throw new Error(`Server error: ${response.statusText}`);
+                }
+
+                const appointmentData = await response.json();
+                
+                // Validate required fields
+                if (!appointmentData.appointmentId || !appointmentData.clientName || !appointmentData.staffName) {
+                    throw new Error('Invalid appointment data structure');
+                }
+
+                return appointmentData;
+            } catch (error) {
+                console.error('Error fetching appointment data:', error);
+                throw error;
+            }
+        }
+
+        // Display appointment data
+        function displayAppointmentData(data) {
+            const appointmentInfo = document.getElementById('appointment-info');
+            
+            appointmentInfo.innerHTML = `
+                <p><strong>Appointment ID:</strong> ${data.appointmentId}</p>
+                <p><strong>Client:</strong> ${data.clientName}</p>
+                <p><strong>Staff:</strong> ${data.staffName}</p>
+                <p><strong>Department:</strong> ${data.department || 'Computer Science Engineering'}</p>
+                <p><strong>Purpose:</strong> ${data.purpose || 'Video Consultation'}</p>
+                <p><strong>Date:</strong> ${data.date || new Date().toLocaleDateString()}</p>
+                <p><strong>Time:</strong> ${data.time || new Date().toLocaleTimeString()}</p>
+                <p><strong>Location:</strong> ${data.location || 'College Campus'}</p>
+                <p><strong>Status:</strong> ${data.status || 'confirmed'}</p>
+                <p><strong>CONTACT:</strong> ${data.contact || data.staffEmail || 'STAFF@EXAMPLE.COM'}</p>
+            `;
+        }
+
+        // Initialize the page
+        async function initializePage() {
+            try {
+                const appointmentData = await fetchAppointmentData();
+                displayAppointmentData(appointmentData);
+                
+                // Hide loading, show appointment
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('appointment-container').style.display = 'flex';
+                
+                console.log('Appointment details loaded successfully:', appointmentData);
+            } catch (error) {
+                console.error('Failed to load appointment details:', error);
+                
+                // Hide loading, show error
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'flex';
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+        // Also try to initialize immediately in case DOM is already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePage);
+        } else {
+            initializePage();
+        }
+    </script>
+</body>
+</html>

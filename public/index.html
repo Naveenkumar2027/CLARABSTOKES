@@ -102,9 +102,9 @@
          <div class="video-call-interface" id="videoCallInterface" style="display: none;">
              <div class="video-call-header">
                  <h2>📹 Video Call with Staff</h2>
-                 <button class="close-video-call" onclick="hideVideoCall()">
-                     <i class="fas fa-times"></i>
-                 </button>
+                <button class="close-video-call" onclick="endCall()">
+                    <i class="fas fa-times"></i>
+                </button>
              </div>
              
              <div class="video-container">
@@ -181,6 +181,8 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

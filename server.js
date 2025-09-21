@@ -45,6 +45,13 @@ const callRoutes = require('./routes/calls');
 const appointmentRoutes = require('./routes/appointments');
 const sessionRoutes = require('./routes/sessions');
 
+// In-memory storage for appointment data (for demo purposes)
+// In production, this should be stored in a database
+const appointmentStorage = new Map();
+
+// Make appointment storage accessible globally
+global.appointmentStorage = appointmentStorage;
+
 // Import staff profiles for demo/staff login support
 const staffProfiles = require('./staff-profiles.js');
 
@@ -178,6 +185,95 @@ app.get('/api/staff/status/:staffId', (req, res) => {
     isOnline, 
     lastSeen: isOnline ? new Date() : null 
   });
+});
+
+// Route to store appointment data (for QR code generation)
+app.post('/api/appointment', (req, res) => {
+    try {
+        const appointmentData = req.body;
+        
+        if (!appointmentData.appointmentId) {
+            return res.status(400).json({ 
+                error: 'Invalid appointment data',
+                message: 'Appointment ID is required'
+            });
+        }
+        
+        // Store appointment data with expiration (24 hours)
+        const expirationTime = Date.now() + (24 * 60 * 60 * 1000);
+        appointmentStorage.set(appointmentData.appointmentId, {
+            ...appointmentData,
+            expiresAt: expirationTime
+        });
+        
+        console.log('📱 Stored appointment data for ID:', appointmentData.appointmentId);
+        res.json({ success: true, message: 'Appointment data stored successfully' });
+    } catch (error) {
+        console.error('Error storing appointment data:', error);
+        res.status(500).json({ 
+            error: 'Internal server error',
+            message: 'Failed to store appointment data'
+        });
+    }
+});
+
+// Route to get appointment data by ID (for QR code redirects)
+app.get('/api/appointment/:id', (req, res) => {
+    try {
+        const appointmentId = req.params.id;
+        const appointmentData = appointmentStorage.get(appointmentId);
+        
+        if (!appointmentData) {
+            return res.status(404).json({ 
+                error: 'Appointment not found',
+                message: 'This appointment ID does not exist or has expired'
+            });
+        }
+        
+        // Check if appointment has expired
+        if (appointmentData.expiresAt && Date.now() > appointmentData.expiresAt) {
+            appointmentStorage.delete(appointmentId);
+            return res.status(404).json({ 
+                error: 'Appointment expired',
+                message: 'This appointment has expired'
+            });
+        }
+        
+        // Remove expiration data before sending
+        const { expiresAt, ...cleanData } = appointmentData;
+        res.json(cleanData);
+    } catch (error) {
+        console.error('Error fetching appointment data:', error);
+        res.status(500).json({ 
+            error: 'Internal server error',
+            message: 'Failed to fetch appointment data'
+        });
+    }
+});
+
+// Route to get tunnel configuration
+app.get('/api/tunnel-config', (req, res) => {
+    try {
+        const fs = require('fs');
+        const path = require('path');
+        const configPath = path.join(__dirname, 'tunnel-config.json');
+        
+        if (fs.existsSync(configPath)) {
+            const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            res.json(config);
+        } else {
+            res.status(404).json({ 
+                error: 'No tunnel configuration found',
+                message: 'Tunnel is not active'
+            });
+        }
+    } catch (error) {
+        console.error('Error reading tunnel configuration:', error);
+        res.status(500).json({ 
+            error: 'Internal server error',
+            message: 'Failed to read tunnel configuration'
+        });
+    }
 });
 
 // Static middleware - AFTER API routes

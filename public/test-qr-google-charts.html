@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test QR Code with Google Charts API</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        .qr-container {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            margin: 15px 0;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #64748b;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        
+        button:hover {
+            background: #5a67d8;
+        }
+        
+        .appointment-details {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 QR Code Generation Test - Google Charts API</h1>
+        
+        <div class="test-section">
+            <h3>Test 1: Simple Text QR Code</h3>
+            <button onclick="generateSimpleQR()">Generate Simple QR Code</button>
+            <div id="simple-qr-container" class="qr-container">
+                <div class="loading">Click button to generate QR code</div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 2: Appointment Data QR Code</h3>
+            <button onclick="generateAppointmentQR()">Generate Appointment QR Code</button>
+            <div class="appointment-details">
+                <h4>Sample Appointment Data:</h4>
+                <p><strong>Appointment ID:</strong> <span id="appointment-id">test_12345</span></p>
+                <p><strong>Client:</strong> <span id="client-name">John Doe</span></p>
+                <p><strong>Staff:</strong> <span id="staff-name">Prof. Anitha C S</span></p>
+                <p><strong>Department:</strong> <span id="department">Computer Science Engineering</span></p>
+                <p><strong>Purpose:</strong> <span id="purpose">Video Consultation</span></p>
+                <p><strong>Date:</strong> <span id="date">21/09/2025</span></p>
+                <p><strong>Time:</strong> <span id="time">18:40:29</span></p>
+                <p><strong>Location:</strong> <span id="location">College Campus</span></p>
+                <p><strong>Status:</strong> <span id="status" style="color: #38a169; font-weight: bold;">confirmed</span></p>
+                <p><strong>Contact:</strong> <span id="contact">staff@example.com</span></p>
+            </div>
+            <div id="appointment-qr-container" class="qr-container">
+                <div class="loading">Click button to generate QR code</div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 3: Multiple QR Codes</h3>
+            <button onclick="generateMultipleQR()">Generate Multiple QR Codes</button>
+            <div id="multiple-qr-container" class="qr-container">
+                <div class="loading">Click button to generate multiple QR codes</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        // Test data
+        const testAppointmentData = {
+            appointmentId: "test_12345",
+            clientName: "John Doe",
+            staffName: "Prof. Anitha C S",
+            staffEmail: "staff@example.com",
+            purpose: "Video Consultation",
+            date: "21/09/2025",
+            time: "18:40:29",
+            status: "confirmed",
+            location: "College Campus",
+            department: "Computer Science Engineering",
+            contact: "staff@example.com"
+        };
+
+        function generateSimpleQR() {
+            const container = document.getElementById('simple-qr-container');
+            container.innerHTML = '<div class="loading">🔄 Generating QR Code...</div>';
+            
+            const qrData = "Hello World! This is a test QR code.";
+            const qrCodeUrl = `https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=${encodeURIComponent(qrData)}`;
+            
+            const img = document.createElement('img');
+            img.src = qrCodeUrl;
+            img.alt = 'Simple QR Code';
+            img.style.maxWidth = '180px';
+            img.style.maxHeight = '180px';
+            img.style.borderRadius = '4px';
+            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            
+            img.onload = () => {
+                container.innerHTML = '';
+                container.appendChild(img);
+            };
+            
+            img.onerror = () => {
+                container.innerHTML = '<div class="loading" style="color: #e53e3e;">❌ Failed to generate QR code</div>';
+            };
+        }
+
+        function generateAppointmentQR() {
+            const container = document.getElementById('appointment-qr-container');
+            container.innerHTML = '<div class="loading">🔄 Generating QR Code...</div>';
+            
+            const qrData = JSON.stringify(testAppointmentData);
+            const qrCodeUrl = `https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=${encodeURIComponent(qrData)}`;
+            
+            const img = document.createElement('img');
+            img.src = qrCodeUrl;
+            img.alt = 'Appointment QR Code';
+            img.style.maxWidth = '180px';
+            img.style.maxHeight = '180px';
+            img.style.borderRadius = '4px';
+            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            
+            img.onload = () => {
+                container.innerHTML = '';
+                container.appendChild(img);
+            };
+            
+            img.onerror = () => {
+                container.innerHTML = '<div class="loading" style="color: #e53e3e;">❌ Failed to generate QR code</div>';
+            };
+        }
+
+        function generateMultipleQR() {
+            const container = document.getElementById('multiple-qr-container');
+            container.innerHTML = '<div class="loading">🔄 Generating Multiple QR Codes...</div>';
+            
+            const qrData1 = "QR Code 1: Test Data";
+            const qrData2 = "QR Code 2: More Test Data";
+            const qrData3 = "QR Code 3: Even More Test Data";
+            
+            const qrUrls = [
+                `https://chart.googleapis.com/chart?chs=150x150&chld=M|0&cht=qr&chl=${encodeURIComponent(qrData1)}`,
+                `https://chart.googleapis.com/chart?chs=150x150&chld=M|0&cht=qr&chl=${encodeURIComponent(qrData2)}`,
+                `https://chart.googleapis.com/chart?chs=150x150&chld=M|0&cht=qr&chl=${encodeURIComponent(qrData3)}`
+            ];
+            
+            container.innerHTML = '';
+            
+            qrUrls.forEach((url, index) => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = `QR Code ${index + 1}`;
+                img.style.maxWidth = '120px';
+                img.style.maxHeight = '120px';
+                img.style.borderRadius = '4px';
+                img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                img.style.margin = '5px';
+                img.style.display = 'inline-block';
+                
+                container.appendChild(img);
+            });
+        }
+
+        // Auto-generate appointment QR on page load
+        window.addEventListener('load', () => {
+            console.log('📱 Test page loaded, Google Charts API available:', typeof google !== 'undefined');
+        });
+    </script>
+</body>
+</html>

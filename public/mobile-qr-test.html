@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile QR Code Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+        }
+        
+        .qr-container {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            margin: 15px 0;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #64748b;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #5a67d8;
+        }
+        
+        .url-display {
+            background: #e2e8f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        
+        .instructions {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .instructions h3 {
+            color: #234e52;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ol {
+            color: #234e52;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Mobile QR Test</h1>
+        
+        <div class="instructions">
+            <h3>📋 Test Instructions:</h3>
+            <ol>
+                <li>Click "Generate QR Code"</li>
+                <li>Use your phone's camera to scan the QR code</li>
+                <li>It should open the appointment details page</li>
+                <li>Check if the page loads correctly on mobile</li>
+            </ol>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔗 Generate Mobile-Friendly QR Code</h3>
+            <button onclick="generateMobileQR()">Generate QR Code</button>
+            
+            <div id="qr-container" class="qr-container">
+                <div class="loading">Click button to generate QR code</div>
+            </div>
+            
+            <div id="url-display" class="url-display" style="display: none;">
+                <!-- URL will be displayed here -->
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Test Results</h3>
+            <div id="test-results">
+                <p>Generate a QR code and scan it to test mobile compatibility.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        // Sample appointment data
+        const testAppointmentData = {
+            appointmentId: "mobile_test_" + Date.now(),
+            clientName: "John Doe",
+            staffName: "Prof. Anitha C S",
+            staffEmail: "staff@example.com",
+            purpose: "Video Consultation",
+            date: "21/09/2025",
+            time: "18:40:29",
+            status: "confirmed",
+            location: "College Campus",
+            department: "Computer Science Engineering",
+            contact: "staff@example.com"
+        };
+
+        async function generateMobileQR() {
+            const container = document.getElementById('qr-container');
+            const urlDisplay = document.getElementById('url-display');
+            const testResults = document.getElementById('test-results');
+            
+            container.innerHTML = '<div class="loading">🔄 Generating QR Code...</div>';
+            testResults.innerHTML = '<p>Generating QR code...</p>';
+            
+            try {
+                // Store appointment data on server
+                await storeAppointmentData(testAppointmentData);
+                
+                // Create the mobile-friendly URL
+                const baseUrl = window.location.origin;
+                const appointmentDetailsUrl = `${baseUrl}/appointment-details.html?id=${testAppointmentData.appointmentId}`;
+                
+                // Display the URL
+                urlDisplay.innerHTML = `<strong>QR Code URL:</strong><br>${appointmentDetailsUrl}`;
+                urlDisplay.style.display = 'block';
+                
+                // Generate QR code
+                await generateQRCode(appointmentDetailsUrl, container);
+                
+                testResults.innerHTML = `
+                    <p style="color: #38a169;">✅ QR code generated successfully!</p>
+                    <p><strong>Appointment ID:</strong> ${testAppointmentData.appointmentId}</p>
+                    <p><strong>Next:</strong> Scan the QR code with your mobile device</p>
+                `;
+                
+            } catch (error) {
+                console.error('Error generating QR code:', error);
+                container.innerHTML = '<div class="loading" style="color: #e53e3e;">❌ Failed to generate QR code</div>';
+                testResults.innerHTML = `<p style="color: #e53e3e;">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function storeAppointmentData(appointmentData) {
+            const response = await fetch('/api/appointment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(appointmentData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to store appointment data: ${response.statusText}`);
+            }
+
+            console.log('📱 Appointment data stored successfully');
+        }
+
+        async function generateQRCode(qrData, container) {
+            const methods = [
+                () => generateWithGoogleCharts(qrData),
+                () => generateWithQRServer(qrData),
+                () => generateWithQRCodeJS(qrData)
+            ];
+
+            for (let i = 0; i < methods.length; i++) {
+                try {
+                    console.log(`📱 Trying QR generation method ${i + 1}...`);
+                    const qrElement = await methods[i]();
+                    
+                    if (qrElement) {
+                        console.log(`✅ Method ${i + 1} succeeded!`);
+                        container.innerHTML = '';
+                        container.appendChild(qrElement);
+                        return;
+                    }
+                } catch (error) {
+                    console.log(`❌ Method ${i + 1} failed:`, error.message);
+                    continue;
+                }
+            }
+            
+            // If all methods fail
+            container.innerHTML = '<div class="loading" style="color: #e53e3e;">❌ All QR generation methods failed</div>';
+        }
+
+        // QR Generation Methods
+        async function generateWithGoogleCharts(qrData) {
+            return new Promise((resolve, reject) => {
+                const qrCodeUrl = `https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=${encodeURIComponent(qrData)}`;
+                const img = document.createElement('img');
+                img.src = qrCodeUrl;
+                img.alt = 'QR Code';
+                img.style.maxWidth = '180px';
+                img.style.maxHeight = '180px';
+                img.style.borderRadius = '4px';
+                img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Google Charts failed'));
+                setTimeout(() => reject(new Error('Google Charts timeout')), 5000);
+            });
+        }
+
+        async function generateWithQRServer(qrData) {
+            return new Promise((resolve, reject) => {
+                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
+                const img = document.createElement('img');
+                img.src = qrCodeUrl;
+                img.alt = 'QR Code';
+                img.style.maxWidth = '180px';
+                img.style.maxHeight = '180px';
+                img.style.borderRadius = '4px';
+                img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('QR Server failed'));
+                setTimeout(() => reject(new Error('QR Server timeout')), 5000);
+            });
+        }
+
+        async function generateWithQRCodeJS(qrData) {
+            return new Promise((resolve, reject) => {
+                try {
+                    if (typeof QRCode === 'undefined') {
+                        reject(new Error('QRCode library not available'));
+                        return;
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 200;
+                    canvas.height = 200;
+                    canvas.style.maxWidth = '180px';
+                    canvas.style.maxHeight = '180px';
+                    canvas.style.borderRadius = '4px';
+                    canvas.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+
+                    QRCode.toCanvas(canvas, qrData, {
+                        width: 200,
+                        margin: 2,
+                        color: { dark: '#000000', light: '#FFFFFF' },
+                        errorCorrectionLevel: 'M'
+                    }, (error) => {
+                        if (error) {
+                            reject(new Error('QRCode.js failed: ' + error.message));
+                        } else {
+                            resolve(canvas);
+                        }
+                    });
+                } catch (error) {
+                    reject(new Error('QRCode.js error: ' + error.message));
+                }
+            });
+        }
+
+        // Auto-generate on page load
+        window.addEventListener('load', () => {
+            console.log('📱 Mobile QR test page loaded');
+            console.log('📱 QRCode.js available:', typeof QRCode !== 'undefined');
+        });
+    </script>
+</body>
+</html>

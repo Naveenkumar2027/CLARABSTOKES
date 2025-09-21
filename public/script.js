@@ -1428,7 +1428,7 @@ class Clara {
 
      async generateQRCodeWithLibrary(appointmentData) {
          try {
-             console.log('📱 Generating QR code with library:', appointmentData);
+             console.log('📱 Generating QR code with Google Charts API:', appointmentData);
 
              const qrData = {
                  appointmentId: appointmentData.appointmentId || Date.now().toString(),
@@ -1444,36 +1444,18 @@ class Clara {
                  contact: appointmentData.staffEmail || 'staff@example.com'
              };
 
-             const qrCodeString = JSON.stringify(qrData);
-             console.log('📱 QR code string:', qrCodeString);
+            // Store appointment data on server for QR code lookup
+            await this.storeAppointmentData(qrData);
+            
+            // Create QR code data with URL to appointment details page
+            const baseUrl = await this.getPublicUrl();
+            // Use shorter URL format for better mobile compatibility
+            const appointmentId = qrData.appointmentId;
+            const appointmentDetailsUrl = `${baseUrl}/appointment-details.html?id=${appointmentId}`;
+            const qrCodeString = appointmentDetailsUrl;
+            console.log('📱 QR code URL:', qrCodeString);
              
-             // Create QR code canvas
-             const qrContainer = document.createElement('canvas');
-             qrContainer.id = 'qr-canvas-' + Date.now();
-             qrContainer.width = 200;
-             qrContainer.height = 200;
-             qrContainer.style.border = '1px solid #e2e8f0';
-             qrContainer.style.borderRadius = '8px';
-             qrContainer.style.backgroundColor = '#ffffff';
-             qrContainer.style.display = 'block';
-             qrContainer.style.margin = '0 auto';
-             
-             console.log('📱 QR code canvas created:', qrContainer.id);
-
-             // Generate QR code
-             await QRCode.toCanvas(qrContainer, qrCodeString, {
-                 width: 200,
-                 margin: 2,
-                 color: {
-                     dark: '#000000',
-                     light: '#FFFFFF'
-                 },
-                 errorCorrectionLevel: 'M'
-             });
-
-             console.log('📱 QR code generated successfully');
-
-             // Add QR code message to chat
+             // Create appointment confirmation message with QR code container
              const qrMessage = document.createElement('div');
              qrMessage.className = 'message bot-message';
              qrMessage.innerHTML = `
@@ -1502,13 +1484,17 @@ class Clara {
                              <p><strong>Contact:</strong> ${qrData.contact}</p>
                          </div>
                          <div style="text-align: center; margin-bottom: 15px; padding: 20px; background: #f7fafc; border: 2px dashed #cbd5e0; border-radius: 8px;">
-                             <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">📱 Your Appointment QR Code:</p>
-                             <div style="display: inline-block; padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                 ${qrContainer.outerHTML}
+                             <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">📱 Appointment QR Code Data:</p>
+                             <div id="qr-code-container-${qrData.appointmentId}" style="background: white; padding: 15px; border-radius: 4px; min-height: 200px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0;">
+                                 <div id="qr-code-loading-${qrData.appointmentId}" style="text-align: center; color: #64748b;">
+                                     <div style="margin-bottom: 10px;">🔄 Generating QR Code...</div>
+                                     <div style="font-size: 12px;">Please wait</div>
+                                 </div>
                              </div>
+                             <p style="font-size: 12px; color: #64748b; margin-top: 10px;">📋 Scan this QR code to access appointment details</p>
                          </div>
-                         <p style="font-size: 12px; color: #64748b; text-align: center;">📱 Scan this QR code to access appointment details and confirm your meeting</p>
-                         <p style="font-size: 12px; color: #64748b; text-align: center;">📅 Show this QR code to ${qrData.staffName} when you arrive</p>
+                         <p style="font-size: 12px; color: #64748b; text-align: center;">📱 Show this QR code to ${qrData.staffName} when you arrive</p>
+                         <p style="font-size: 12px; color: #64748b; text-align: center;">📅 QR code contains all appointment information</p>
                      </div>
                  </div>
              `;
@@ -1516,85 +1502,335 @@ class Clara {
              // Add to chat messages
              this.chatMessages.appendChild(qrMessage);
              this.scrollToBottom();
+             
+             // Generate QR code using Google Charts API
+             await this.generateGoogleChartsQRCode(qrCodeString, qrData.appointmentId);
+             
              console.log('📱 QR code message added to chat successfully');
 
          } catch (error) {
-             console.error('Error generating QR code with library:', error);
+             console.error('Error generating QR code with Google Charts:', error);
              // Fallback to text-based method
              await this.generateQRCodeFallback(appointmentData);
          }
      }
 
-     async generateQRCodeFallback(appointmentData) {
-         try {
-             console.log('📱 Generating fallback QR code:', appointmentData);
-             
-             const qrData = {
-                 appointmentId: appointmentData.appointmentId || Date.now().toString(),
-                 clientName: appointmentData.clientName || 'Client',
-                 staffName: appointmentData.staffName || 'Staff Member',
-                 staffEmail: appointmentData.staffEmail || 'staff@example.com',
-                 purpose: appointmentData.purpose || 'Consultation',
-                 date: new Date().toLocaleDateString(),
-                 time: new Date().toLocaleTimeString(),
-                 status: 'confirmed',
-                 location: 'College Campus',
-                 department: 'Computer Science Engineering',
-                 contact: appointmentData.staffEmail || 'staff@example.com'
-             };
+    async generateQRCodeFallback(appointmentData) {
+        try {
+            console.log('📱 Generating QR code with Google Charts API:', appointmentData);
+            
+            const qrData = {
+                appointmentId: appointmentData.appointmentId || Date.now().toString(),
+                clientName: appointmentData.clientName || 'Client',
+                staffName: appointmentData.staffName || 'Staff Member',
+                staffEmail: appointmentData.staffEmail || 'staff@example.com',
+                purpose: appointmentData.purpose || 'Consultation',
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
+                status: 'confirmed',
+                location: 'College Campus',
+                department: 'Computer Science Engineering',
+                contact: appointmentData.staffEmail || 'staff@example.com'
+            };
 
-             // Create a text-based QR code representation
-             const qrCodeString = JSON.stringify(qrData);
-             console.log('📱 Fallback QR code string:', qrCodeString);
-             
-             // Create a simple text-based QR code display
-             const qrMessage = document.createElement('div');
-             qrMessage.className = 'message bot-message';
-             qrMessage.innerHTML = `
-                 <div class="message-header">
-                     <div class="message-avatar">
-                         <i class="fas fa-robot"></i>
-                     </div>
-                     <div class="message-info">
-                         <span class="message-sender">Clara</span>
-                         <span class="message-time">${new Date().toLocaleTimeString()}</span>
-                     </div>
-                 </div>
-                 <div class="message-text">
-                     <h3 style="margin-bottom: 15px; color: #2d3748;">🎉 Appointment Confirmed!</h3>
-                     <div style="margin-bottom: 15px;">
-                         <p><strong>Appointment ID:</strong> ${qrData.appointmentId}</p>
-                         <p><strong>Client:</strong> ${qrData.clientName}</p>
-                         <p><strong>Staff:</strong> ${qrData.staffName}</p>
-                         <p><strong>Department:</strong> ${qrData.department}</p>
-                         <p><strong>Purpose:</strong> ${qrData.purpose}</p>
-                         <p><strong>Date:</strong> ${qrData.date}</p>
-                         <p><strong>Time:</strong> ${qrData.time}</p>
-                         <p><strong>Location:</strong> ${qrData.location}</p>
-                         <p><strong>Status:</strong> <span style="color: #38a169; font-weight: bold;">${qrData.status}</span></p>
-                         <p><strong>Contact:</strong> ${qrData.contact}</p>
-                     </div>
-                     <div style="text-align: center; margin-bottom: 15px; padding: 20px; background: #f7fafc; border: 2px dashed #cbd5e0; border-radius: 8px;">
-                         <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">📱 Appointment QR Code Data:</p>
-                         <div style="background: white; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px; word-break: break-all; text-align: left;">
-                             ${qrCodeString}
-                         </div>
-                         <p style="font-size: 12px; color: #64748b; margin-top: 10px;">📋 Copy this data to generate QR code externally</p>
-                     </div>
-                     <p style="font-size: 12px; color: #64748b; text-align: center;">📱 Show this appointment data to ${qrData.staffName} when you arrive</p>
-                     <p style="font-size: 12px; color: #64748b; text-align: center;">📅 Use any QR code generator app with this data</p>
-                 </div>
-             `;
+            // Store appointment data on server for QR code lookup
+            await this.storeAppointmentData(qrData);
+            
+            // Create QR code data with URL to appointment details page
+            const baseUrl = await this.getPublicUrl();
+            // Use shorter URL format for better mobile compatibility
+            const appointmentId = qrData.appointmentId;
+            const appointmentDetailsUrl = `${baseUrl}/appointment-details.html?id=${appointmentId}`;
+            const qrCodeString = appointmentDetailsUrl;
+            console.log('📱 QR code URL:', qrCodeString);
+            
+            // Create appointment confirmation message with QR code container
+            const qrMessage = document.createElement('div');
+            qrMessage.className = 'message bot-message';
+            qrMessage.innerHTML = `
+                <div class="message-header">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-info">
+                        <span class="message-sender">Clara</span>
+                        <span class="message-time">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                </div>
+                <div class="message-text">
+                    <h3 style="margin-bottom: 15px; color: #2d3748;">🎉 Appointment Confirmed!</h3>
+                    <div style="margin-bottom: 15px;">
+                        <p><strong>Appointment ID:</strong> ${qrData.appointmentId}</p>
+                        <p><strong>Client:</strong> ${qrData.clientName}</p>
+                        <p><strong>Staff:</strong> ${qrData.staffName}</p>
+                        <p><strong>Department:</strong> ${qrData.department}</p>
+                        <p><strong>Purpose:</strong> ${qrData.purpose}</p>
+                        <p><strong>Date:</strong> ${qrData.date}</p>
+                        <p><strong>Time:</strong> ${qrData.time}</p>
+                        <p><strong>Location:</strong> ${qrData.location}</p>
+                        <p><strong>Status:</strong> <span style="color: #38a169; font-weight: bold;">${qrData.status}</span></p>
+                        <p><strong>Contact:</strong> ${qrData.contact}</p>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 15px; padding: 20px; background: #f7fafc; border: 2px dashed #cbd5e0; border-radius: 8px;">
+                        <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">📱 Appointment QR Code Data:</p>
+                        <div id="qr-code-container-${qrData.appointmentId}" style="background: white; padding: 15px; border-radius: 4px; min-height: 200px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0;">
+                            <div id="qr-code-loading-${qrData.appointmentId}" style="text-align: center; color: #64748b;">
+                                <div style="margin-bottom: 10px;">🔄 Generating QR Code...</div>
+                                <div style="font-size: 12px;">Please wait</div>
+                            </div>
+                        </div>
+                        <p style="font-size: 12px; color: #64748b; margin-top: 10px;">📋 Scan this QR code to access appointment details</p>
+                    </div>
+                    <p style="font-size: 12px; color: #64748b; text-align: center;">📱 Show this QR code to ${qrData.staffName} when you arrive</p>
+                    <p style="font-size: 12px; color: #64748b; text-align: center;">📅 QR code contains all appointment information</p>
+                </div>
+            `;
 
-             // Add to chat messages
-             this.chatMessages.appendChild(qrMessage);
-             this.scrollToBottom();
-             
-         } catch (error) {
-             console.error('Error generating fallback QR code:', error);
-             this.addMessage('❌ Failed to generate QR code. Please try again.', 'error');
-         }
-     }
+            // Add to chat messages
+            this.chatMessages.appendChild(qrMessage);
+            this.scrollToBottom();
+            
+            // Generate QR code using Google Charts API
+            await this.generateGoogleChartsQRCode(qrCodeString, qrData.appointmentId);
+            
+        } catch (error) {
+            console.error('Error generating QR code:', error);
+            this.addMessage('❌ Failed to generate QR code. Please try again.', 'error');
+        }
+    }
+
+    async generateGoogleChartsQRCode(qrData, appointmentId) {
+        try {
+            console.log('📱 Generating QR code with Google Charts API for appointment:', appointmentId);
+            
+            // Get the container element
+            const container = document.getElementById(`qr-code-container-${appointmentId}`);
+            const loading = document.getElementById(`qr-code-loading-${appointmentId}`);
+            
+            if (!container || !loading) {
+                console.error('📱 Container elements not found');
+                return;
+            }
+
+            // Try multiple QR code generation methods
+            await this.tryMultipleQRMethods(qrData, container, loading, appointmentId);
+            
+        } catch (error) {
+            console.error('Error generating Google Charts QR code:', error);
+            const container = document.getElementById(`qr-code-container-${appointmentId}`);
+            const loading = document.getElementById(`qr-code-loading-${appointmentId}`);
+            
+            if (container && loading) {
+                loading.innerHTML = `
+                    <div style="text-align: center; color: #e53e3e;">
+                        <div style="margin-bottom: 10px;">❌ QR Code Generation Failed</div>
+                        <div style="font-size: 12px;">Please try again</div>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    async tryMultipleQRMethods(qrData, container, loading, appointmentId) {
+        const methods = [
+            () => this.generateQRWithGoogleCharts(qrData),
+            () => this.generateQRWithQRServer(qrData),
+            () => this.generateQRWithAPIQR(qrData),
+            () => this.generateQRWithQRCodeJS(qrData)
+        ];
+
+        for (let i = 0; i < methods.length; i++) {
+            try {
+                console.log(`📱 Trying QR generation method ${i + 1}...`);
+                const qrImage = await methods[i]();
+                
+                if (qrImage) {
+                    console.log(`📱 QR code generated successfully with method ${i + 1}`);
+                    loading.style.display = 'none';
+                    container.appendChild(qrImage);
+                    return;
+                }
+            } catch (error) {
+                console.log(`📱 Method ${i + 1} failed:`, error.message);
+                continue;
+            }
+        }
+        
+        // If all methods fail, show error
+        loading.innerHTML = `
+            <div style="text-align: center; color: #e53e3e;">
+                <div style="margin-bottom: 10px;">❌ All QR Code Generation Methods Failed</div>
+                <div style="font-size: 12px;">Please check your internet connection</div>
+            </div>
+        `;
+    }
+
+    async generateQRWithGoogleCharts(qrData) {
+        return new Promise((resolve, reject) => {
+            const qrCodeUrl = `https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=${encodeURIComponent(qrData)}`;
+            const img = document.createElement('img');
+            img.src = qrCodeUrl;
+            img.alt = 'Appointment QR Code';
+            img.style.maxWidth = '180px';
+            img.style.maxHeight = '180px';
+            img.style.borderRadius = '4px';
+            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Google Charts failed'));
+            
+            // Timeout after 5 seconds
+            setTimeout(() => reject(new Error('Google Charts timeout')), 5000);
+        });
+    }
+
+    async generateQRWithQRServer(qrData) {
+        return new Promise((resolve, reject) => {
+            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
+            const img = document.createElement('img');
+            img.src = qrCodeUrl;
+            img.alt = 'Appointment QR Code';
+            img.style.maxWidth = '180px';
+            img.style.maxHeight = '180px';
+            img.style.borderRadius = '4px';
+            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('QR Server failed'));
+            
+            // Timeout after 5 seconds
+            setTimeout(() => reject(new Error('QR Server timeout')), 5000);
+        });
+    }
+
+    async generateQRWithAPIQR(qrData) {
+        return new Promise((resolve, reject) => {
+            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&format=png&data=${encodeURIComponent(qrData)}`;
+            const img = document.createElement('img');
+            img.src = qrCodeUrl;
+            img.alt = 'Appointment QR Code';
+            img.style.maxWidth = '180px';
+            img.style.maxHeight = '180px';
+            img.style.borderRadius = '4px';
+            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('API QR failed'));
+            
+            // Timeout after 5 seconds
+            setTimeout(() => reject(new Error('API QR timeout')), 5000);
+        });
+    }
+
+    async generateQRWithQRCodeJS(qrData) {
+        return new Promise((resolve, reject) => {
+            try {
+                // Check if QRCode library is available
+                if (typeof QRCode === 'undefined') {
+                    reject(new Error('QRCode library not available'));
+                    return;
+                }
+
+                // Create canvas element
+                const canvas = document.createElement('canvas');
+                canvas.width = 200;
+                canvas.height = 200;
+                canvas.style.maxWidth = '180px';
+                canvas.style.maxHeight = '180px';
+                canvas.style.borderRadius = '4px';
+                canvas.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+
+                // Generate QR code
+                QRCode.toCanvas(canvas, qrData, {
+                    width: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    },
+                    errorCorrectionLevel: 'M'
+                }, (error) => {
+                    if (error) {
+                        reject(new Error('QRCode.js failed: ' + error.message));
+                    } else {
+                        resolve(canvas);
+                    }
+                });
+            } catch (error) {
+                reject(new Error('QRCode.js error: ' + error.message));
+            }
+        });
+    }
+
+    async loadGoogleChartsAPI() {
+        return new Promise((resolve, reject) => {
+            // Check if already loaded
+            if (typeof google !== 'undefined' && google.charts) {
+                resolve();
+                return;
+            }
+
+            // Create script element
+            const script = document.createElement('script');
+            script.src = 'https://www.gstatic.com/charts/loader.js';
+            script.async = true;
+            
+            script.onload = () => {
+                console.log('📱 Google Charts API loaded successfully');
+                resolve();
+            };
+            
+            script.onerror = () => {
+                console.error('📱 Failed to load Google Charts API');
+                reject(new Error('Failed to load Google Charts API'));
+            };
+            
+            document.head.appendChild(script);
+        });
+    }
+
+    async storeAppointmentData(appointmentData) {
+        try {
+            console.log('📱 Storing appointment data:', appointmentData);
+            
+            // Store appointment data on server for QR code lookup
+            const response = await fetch('/api/appointment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(appointmentData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to store appointment data: ${response.statusText}`);
+            }
+
+            console.log('📱 Appointment data stored successfully');
+        } catch (error) {
+            console.error('📱 Error storing appointment data:', error);
+            // Don't throw error - QR code generation should continue even if storage fails
+        }
+    }
+
+    async getPublicUrl() {
+        try {
+            // Try to get tunnel configuration from server
+            const response = await fetch('/api/tunnel-config');
+            if (response.ok) {
+                const config = await response.json();
+                if (config.tunnelUrl) {
+                    console.log('📱 Using tunnel URL:', config.tunnelUrl);
+                    return config.tunnelUrl;
+                }
+            }
+        } catch (error) {
+            console.log('📱 No tunnel configuration found, using local URL');
+        }
+        
+        // Fallback to local URL
+        return window.location.origin;
+    }
 }
 
 // Initialize Clara when DOM is loaded
@@ -1732,7 +1968,49 @@ function showVideoCall() {
 
 function hideVideoCall() {
     document.getElementById('videoCallInterface').style.display = 'none';
-    endCall();
+    // Don't call endCall() here to avoid infinite recursion
+    // endCall() will be called explicitly when needed
+}
+
+function endVideoCall() {
+    // This function properly ends the call and hides the interface
+    console.log('📞 Ending video call and hiding interface...');
+    
+    // Clean up WebRTC connection
+    const clara = window.claraInstance;
+    if (clara) {
+        // Stop local stream
+        if (clara.localStream) {
+            clara.localStream.getTracks().forEach(track => track.stop());
+            clara.localStream = null;
+        }
+        
+        // Close peer connection
+        if (clara.peerConnection) {
+            clara.peerConnection.close();
+            clara.peerConnection = null;
+        }
+        
+        // Clear video elements
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        if (localVideo) localVideo.srcObject = null;
+        if (remoteVideo) remoteVideo.srcObject = null;
+        
+        // Send end call to server
+        if (clara.socket && currentCallData) {
+            clara.socket.emit('end-video-call', {
+                callId: currentCallData.callId
+            });
+        }
+        
+        clara.currentCallId = null;
+    }
+    
+    currentCallData = null;
+    
+    // Hide the video call interface
+    document.getElementById('videoCallInterface').style.display = 'none';
 }
 
 function initializeVideoCall() {
@@ -1799,38 +2077,5 @@ function toggleVideo() {
 
 function endCall() {
     console.log('📞 Ending video call...');
-    
-    // Clean up WebRTC connection
-    const clara = window.claraInstance;
-    if (clara) {
-        // Stop local stream
-        if (clara.localStream) {
-            clara.localStream.getTracks().forEach(track => track.stop());
-            clara.localStream = null;
-        }
-        
-        // Close peer connection
-        if (clara.peerConnection) {
-            clara.peerConnection.close();
-            clara.peerConnection = null;
-        }
-        
-        // Clear video elements
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        if (localVideo) localVideo.srcObject = null;
-        if (remoteVideo) remoteVideo.srcObject = null;
-        
-        // Send end call to server
-        if (clara.socket && currentCallData) {
-            clara.socket.emit('end-video-call', {
-                callId: currentCallData.callId
-            });
-        }
-        
-        clara.currentCallId = null;
-    }
-    
-    currentCallData = null;
-    hideVideoCall();
+    endVideoCall();
 }
