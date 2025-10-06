@@ -7,8 +7,15 @@
   const errorBox = document.getElementById('error');
   const errmsg = document.getElementById('errmsg');
 
+  const apiBase = qs.get('api') || '';
+
   async function fetchDetails(appointmentId){
-    const res = await fetch(`/api/appointment/${encodeURIComponent(appointmentId)}`);
+    // If deployed on Vercel, use the local serverless proxy which forwards to ?api=
+    // Otherwise, fall back to same-origin API for local dev.
+    const url = apiBase
+      ? `/appointment-frontend/api/appointment?id=${encodeURIComponent(appointmentId)}&api=${encodeURIComponent(apiBase)}`
+      : `/api/appointment/${encodeURIComponent(appointmentId)}`;
+    const res = await fetch(url, { credentials: 'omit' });
     if(!res.ok) throw new Error(res.status === 404 ? 'Appointment not found' : 'Server error');
     return res.json();
   }

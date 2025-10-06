@@ -1447,11 +1447,11 @@ class Clara {
             // Store appointment data on server for QR code lookup
             await this.storeAppointmentData(qrData);
             
-            // Create QR code data with URL to appointment details page
-            const baseUrl = await this.getPublicUrl();
-            // Use shorter URL format for better mobile compatibility
+            // Create QR code data: point to deployed Vercel frontend with API base encoded
+            const baseUrl = await this.getPublicUrl(); // backend base for API
             const appointmentId = qrData.appointmentId;
-            const appointmentDetailsUrl = `${baseUrl}/appointment-frontend/index.html?id=${appointmentId}`;
+            const frontendBase = 'https://clarabstokes.vercel.app';
+            const appointmentDetailsUrl = `${frontendBase}/?id=${encodeURIComponent(appointmentId)}&api=${encodeURIComponent(baseUrl)}`;
             const qrCodeString = appointmentDetailsUrl;
             console.log('📱 QR code URL:', qrCodeString);
              
@@ -1536,11 +1536,11 @@ class Clara {
             // Store appointment data on server for QR code lookup
             await this.storeAppointmentData(qrData);
             
-            // Create QR code data with URL to appointment details page
-            const baseUrl = await this.getPublicUrl();
-            // Use shorter URL format for better mobile compatibility
+            // Create QR code data: point to deployed Vercel frontend with API base encoded
+            const baseUrl = await this.getPublicUrl(); // backend base for API
             const appointmentId = qrData.appointmentId;
-            const appointmentDetailsUrl = `${baseUrl}/appointment-frontend/index.html?id=${appointmentId}`;
+            const frontendBase = 'https://clarabstokes.vercel.app';
+            const appointmentDetailsUrl = `${frontendBase}/?id=${encodeURIComponent(appointmentId)}&api=${encodeURIComponent(baseUrl)}`;
             const qrCodeString = appointmentDetailsUrl;
             console.log('📱 QR code URL:', qrCodeString);
             
