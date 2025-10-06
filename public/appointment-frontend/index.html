@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="loading" class="loading">Loading appointment details...</div>
+
+    <div id="app" class="app" style="display:none;">
+        <!-- Left: Details -->
+        <section class="details">
+            <h1 class="title">Your Appointment<br>as been confirmed!!</h1>
+
+            <div class="section">
+                <h2 class="section-heading">APPOINTMENT DETAILS</h2>
+                <div class="rule"></div>
+                <div class="info" id="info">
+                    <!-- Filled by script.js -->
+                </div>
+            </div>
+
+            <footer class="footer">
+                <div class="thank">THANK YOU !!</div>
+                <div class="great">HAVE A GREAT DAY !!</div>
+                <div class="clara">CLARA - YOUR FRIENDLY AI RECEPTIONIST</div>
+            </footer>
+        </section>
+
+        <!-- Right: Branding -->
+        <aside class="brand">
+            <div class="badge">
+                <img src="../images/svit-badge.png" alt="SVIT" onerror="this.style.display='none'"/>
+            </div>
+            <div class="vertical">SAI VIDYA INSTITUTE OF<br>TECHNOLOGY</div>
+        </aside>
+    </div>
+
+    <div id="error" class="error" style="display:none;">
+        <h3>❌ Unable to load appointment</h3>
+        <p id="errmsg">Unknown error</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

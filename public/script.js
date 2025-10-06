@@ -1451,7 +1451,7 @@ class Clara {
             const baseUrl = await this.getPublicUrl();
             // Use shorter URL format for better mobile compatibility
             const appointmentId = qrData.appointmentId;
-            const appointmentDetailsUrl = `${baseUrl}/appointment-details.html?id=${appointmentId}`;
+            const appointmentDetailsUrl = `${baseUrl}/appointment-frontend/index.html?id=${appointmentId}`;
             const qrCodeString = appointmentDetailsUrl;
             console.log('📱 QR code URL:', qrCodeString);
              
@@ -1540,7 +1540,7 @@ class Clara {
             const baseUrl = await this.getPublicUrl();
             // Use shorter URL format for better mobile compatibility
             const appointmentId = qrData.appointmentId;
-            const appointmentDetailsUrl = `${baseUrl}/appointment-details.html?id=${appointmentId}`;
+            const appointmentDetailsUrl = `${baseUrl}/appointment-frontend/index.html?id=${appointmentId}`;
             const qrCodeString = appointmentDetailsUrl;
             console.log('📱 QR code URL:', qrCodeString);
             
