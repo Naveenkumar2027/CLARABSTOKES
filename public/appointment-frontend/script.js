@@ -1,19 +1,25 @@
 (function(){
   const qs = new URLSearchParams(location.search);
   const id = qs.get('id');
-  const app = document.getElementById('app');
+  const app = document.getElementById('info');
   const info = document.getElementById('info');
   const loading = document.getElementById('loading');
   const errorBox = document.getElementById('error');
   const errmsg = document.getElementById('errmsg');
 
   const apiBase = qs.get('api') || '';
+  const preloaded = (() => {
+    try {
+      const d = qs.get('data');
+      if (!d) return null;
+      return JSON.parse(decodeURIComponent(escape(atob(d))));
+    } catch(_) { return null; }
+  })();
 
   async function fetchDetails(appointmentId){
-    // If deployed on Vercel, use the local serverless proxy which forwards to ?api=
-    // Otherwise, fall back to same-origin API for local dev.
+    // Prefer direct backend call via ?api= to avoid missing proxy routes on Vercel
     const url = apiBase
-      ? `/appointment-frontend/api/appointment?id=${encodeURIComponent(appointmentId)}&api=${encodeURIComponent(apiBase)}`
+      ? `${apiBase.replace(/\/$/, '')}/api/appointment/${encodeURIComponent(appointmentId)}`
       : `/api/appointment/${encodeURIComponent(appointmentId)}`;
     const res = await fetch(url, { credentials: 'omit' });
     if(!res.ok) throw new Error(res.status === 404 ? 'Appointment not found' : 'Server error');
@@ -21,19 +27,17 @@
   }
 
   function render(d){
-    const rows = [
-      ['Appointment ID', d.appointmentId],
-      ['Client', d.clientName],
-      ['Staff', d.staffName],
-      ['Department', d.department || 'Computer Science Engineering'],
-      ['Purpose', d.purpose || 'Video Consultation'],
-      ['Date', d.date || new Date().toLocaleDateString()],
-      ['Time', d.time || new Date().toLocaleTimeString()],
-      ['Location', d.location || 'College Campus'],
-      ['Status', d.status || 'confirmed'],
-      ['CONTACT', (d.contact || d.staffEmail || 'STAFF@EXAMPLE.COM').toUpperCase()]
-    ];
-    info.innerHTML = rows.map(([k,v])=>`<p><strong>${k}:</strong> ${escapeHtml(String(v))}</p>`).join('');
+    info.style.display='block';
+    set('f-id', d.appointmentId||id||'-');
+    set('f-client', d.clientName||'-');
+    set('f-staff', d.staffName||'-');
+    set('f-dept', d.department||'Computer Science Engineering');
+    set('f-purpose', d.purpose||'Video Consultation');
+    set('f-date', d.date||new Date().toLocaleDateString());
+    set('f-time', d.time||new Date().toLocaleTimeString());
+    set('f-status', d.status||'confirmed');
+    set('f-location', d.location||'College Campus');
+    set('f-contact', (d.contact||d.staffEmail||'staff@example.com'));
   }
 
   function escapeHtml(s){
@@ -43,7 +47,9 @@
   async function init(){
     try{
       let data;
-      if(id){
+      if(preloaded && preloaded.appointmentId){
+        data = preloaded;
+      } else if(id){
         data = await fetchDetails(id);
       } else {
         // sample demo data (for style preview)
@@ -62,7 +68,7 @@
       }
       render(data);
       loading.style.display='none';
-      app.style.display='flex';
+      app.style.display='block';
     }catch(err){
       loading.style.display='none';
       errorBox.style.display='flex';

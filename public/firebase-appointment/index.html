@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Appointment Details</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app" class="container">
+    <div class="left">
+      <h1 id="title">Appointment Details</h1>
+      <div id="loading" class="muted">Loading...</div>
+      <div id="error" class="error" style="display:none"><span id="errmsg"></span></div>
+      <div id="info" class="info" style="display:none">
+        <p><strong>Appointment ID:</strong> <span id="f-id"></span></p>
+        <p><strong>Client:</strong> <span id="f-client"></span></p>
+        <p><strong>Staff:</strong> <span id="f-staff"></span></p>
+        <p><strong>Department:</strong> <span id="f-dept"></span></p>
+        <p><strong>Purpose:</strong> <span id="f-purpose"></span></p>
+        <p><strong>Date:</strong> <span id="f-date"></span></p>
+        <p><strong>Time:</strong> <span id="f-time"></span></p>
+        <p><strong>Status:</strong> <span id="f-status"></span></p>
+        <p><strong>Location:</strong> <span id="f-location"></span></p>
+        <p><strong>Contact:</strong> <span id="f-contact"></span></p>
+      </div>
+    </div>
+    <div class="right">
+      <div class="brand">
+        <img src="/logo192.png" alt="Logo" onerror="this.style.display='none'" />
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
+
+

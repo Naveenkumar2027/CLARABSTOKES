@@ -37,6 +37,7 @@ class Clara {
         this.setupSocketListeners();
         this.setWelcomeTime();
         this.setupKeyboardShortcuts();
+        this.renderedQRCodes = new Set();
     }
 
     initializeElements() {
@@ -1411,8 +1412,9 @@ class Clara {
              console.log('📱 generateQRCode called with data:', appointmentData);
              console.log('📱 QRCode library available:', typeof QRCode !== 'undefined');
              
-             // Use QRCode library for visual QR code
-             if (typeof QRCode !== 'undefined') {
+            // Ensure QRCode library is available (retry briefly if needed)
+            await this.ensureQRCodeLib();
+            if (typeof QRCode !== 'undefined') {
                  console.log('📱 Using QRCode library for visual QR code');
                  await this.generateQRCodeWithLibrary(appointmentData);
              } else {
@@ -1447,11 +1449,12 @@ class Clara {
             // Store appointment data on server for QR code lookup
             await this.storeAppointmentData(qrData);
             
-            // Create QR code data: point to deployed Vercel frontend with API base encoded
-            const baseUrl = await this.getPublicUrl(); // backend base for API
+            // Create QR code data with URL to appointment details page
+            const baseUrl = await this.getPublicUrl();
+            // Use shorter URL format for better mobile compatibility
             const appointmentId = qrData.appointmentId;
-            const frontendBase = 'https://clarabstokes.vercel.app';
-            const appointmentDetailsUrl = `${frontendBase}/?id=${encodeURIComponent(appointmentId)}&api=${encodeURIComponent(baseUrl)}`;
+            const dataB64 = btoa(unescape(encodeURIComponent(JSON.stringify(qrData))));
+            const appointmentDetailsUrl = `https://clarabstokes-pvp6.vercel.app/?id=${appointmentId}&api=${encodeURIComponent(baseUrl)}&data=${encodeURIComponent(dataB64)}`;
             const qrCodeString = appointmentDetailsUrl;
             console.log('📱 QR code URL:', qrCodeString);
              
@@ -1536,11 +1539,12 @@ class Clara {
             // Store appointment data on server for QR code lookup
             await this.storeAppointmentData(qrData);
             
-            // Create QR code data: point to deployed Vercel frontend with API base encoded
-            const baseUrl = await this.getPublicUrl(); // backend base for API
+            // Create QR code data with URL to appointment details page
+            const baseUrl = await this.getPublicUrl();
+            // Use shorter URL format for better mobile compatibility
             const appointmentId = qrData.appointmentId;
-            const frontendBase = 'https://clarabstokes.vercel.app';
-            const appointmentDetailsUrl = `${frontendBase}/?id=${encodeURIComponent(appointmentId)}&api=${encodeURIComponent(baseUrl)}`;
+            const dataB64 = btoa(unescape(encodeURIComponent(JSON.stringify(qrData))));
+            const appointmentDetailsUrl = `https://clarabstokes-pvp6.vercel.app/?id=${appointmentId}&api=${encodeURIComponent(baseUrl)}&data=${encodeURIComponent(dataB64)}`;
             const qrCodeString = appointmentDetailsUrl;
             console.log('📱 QR code URL:', qrCodeString);
             
@@ -1590,8 +1594,8 @@ class Clara {
             this.chatMessages.appendChild(qrMessage);
             this.scrollToBottom();
             
-            // Generate QR code using Google Charts API
-            await this.generateGoogleChartsQRCode(qrCodeString, qrData.appointmentId);
+            await this.renderQRCodeIntoContainer(qrCodeString, qrData.appointmentId);
+            await this.renderQRCodeIntoContainer(qrCodeString, qrData.appointmentId);
             
         } catch (error) {
             console.error('Error generating QR code:', error);
@@ -1599,128 +1603,15 @@ class Clara {
         }
     }
 
-    async generateGoogleChartsQRCode(qrData, appointmentId) {
-        try {
-            console.log('📱 Generating QR code with Google Charts API for appointment:', appointmentId);
-            
-            // Get the container element
-            const container = document.getElementById(`qr-code-container-${appointmentId}`);
-            const loading = document.getElementById(`qr-code-loading-${appointmentId}`);
-            
-            if (!container || !loading) {
-                console.error('📱 Container elements not found');
-                return;
-            }
+    // Removed Google Charts path; QR is rendered by QRCode.js only
 
-            // Try multiple QR code generation methods
-            await this.tryMultipleQRMethods(qrData, container, loading, appointmentId);
-            
-        } catch (error) {
-            console.error('Error generating Google Charts QR code:', error);
-            const container = document.getElementById(`qr-code-container-${appointmentId}`);
-            const loading = document.getElementById(`qr-code-loading-${appointmentId}`);
-            
-            if (container && loading) {
-                loading.innerHTML = `
-                    <div style="text-align: center; color: #e53e3e;">
-                        <div style="margin-bottom: 10px;">❌ QR Code Generation Failed</div>
-                        <div style="font-size: 12px;">Please try again</div>
-                    </div>
-                `;
-            }
-        }
-    }
+    // Removed multi-method fallbacks; only local QRCode.js is used for 100% control
 
-    async tryMultipleQRMethods(qrData, container, loading, appointmentId) {
-        const methods = [
-            () => this.generateQRWithGoogleCharts(qrData),
-            () => this.generateQRWithQRServer(qrData),
-            () => this.generateQRWithAPIQR(qrData),
-            () => this.generateQRWithQRCodeJS(qrData)
-        ];
+    // Removed Google Charts generator
 
-        for (let i = 0; i < methods.length; i++) {
-            try {
-                console.log(`📱 Trying QR generation method ${i + 1}...`);
-                const qrImage = await methods[i]();
-                
-                if (qrImage) {
-                    console.log(`📱 QR code generated successfully with method ${i + 1}`);
-                    loading.style.display = 'none';
-                    container.appendChild(qrImage);
-                    return;
-                }
-            } catch (error) {
-                console.log(`📱 Method ${i + 1} failed:`, error.message);
-                continue;
-            }
-        }
-        
-        // If all methods fail, show error
-        loading.innerHTML = `
-            <div style="text-align: center; color: #e53e3e;">
-                <div style="margin-bottom: 10px;">❌ All QR Code Generation Methods Failed</div>
-                <div style="font-size: 12px;">Please check your internet connection</div>
-            </div>
-        `;
-    }
+    // Removed external QR services
 
-    async generateQRWithGoogleCharts(qrData) {
-        return new Promise((resolve, reject) => {
-            const qrCodeUrl = `https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=${encodeURIComponent(qrData)}`;
-            const img = document.createElement('img');
-            img.src = qrCodeUrl;
-            img.alt = 'Appointment QR Code';
-            img.style.maxWidth = '180px';
-            img.style.maxHeight = '180px';
-            img.style.borderRadius = '4px';
-            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-            
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error('Google Charts failed'));
-            
-            // Timeout after 5 seconds
-            setTimeout(() => reject(new Error('Google Charts timeout')), 5000);
-        });
-    }
-
-    async generateQRWithQRServer(qrData) {
-        return new Promise((resolve, reject) => {
-            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
-            const img = document.createElement('img');
-            img.src = qrCodeUrl;
-            img.alt = 'Appointment QR Code';
-            img.style.maxWidth = '180px';
-            img.style.maxHeight = '180px';
-            img.style.borderRadius = '4px';
-            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-            
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error('QR Server failed'));
-            
-            // Timeout after 5 seconds
-            setTimeout(() => reject(new Error('QR Server timeout')), 5000);
-        });
-    }
-
-    async generateQRWithAPIQR(qrData) {
-        return new Promise((resolve, reject) => {
-            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&format=png&data=${encodeURIComponent(qrData)}`;
-            const img = document.createElement('img');
-            img.src = qrCodeUrl;
-            img.alt = 'Appointment QR Code';
-            img.style.maxWidth = '180px';
-            img.style.maxHeight = '180px';
-            img.style.borderRadius = '4px';
-            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-            
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error('API QR failed'));
-            
-            // Timeout after 5 seconds
-            setTimeout(() => reject(new Error('API QR timeout')), 5000);
-        });
-    }
+    // Removed external QR services
 
     async generateQRWithQRCodeJS(qrData) {
         return new Promise((resolve, reject) => {
@@ -1760,6 +1651,101 @@ class Clara {
                 reject(new Error('QRCode.js error: ' + error.message));
             }
         });
+    }
+
+    async ensureQRCodeLib() {
+        const maxWaitMs = 1000;
+        const start = Date.now();
+        while (typeof QRCode === 'undefined' && Date.now() - start < maxWaitMs) {
+            await new Promise(r => setTimeout(r, 50));
+        }
+        if (typeof QRCode === 'undefined') {
+            try {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+                    s.async = true;
+                    s.onload = resolve;
+                    s.onerror = () => reject(new Error('Failed to load QRCode lib'));
+                    document.head.appendChild(s);
+                });
+            } catch (_) {}
+        }
+    }
+
+    async renderQRCodeIntoContainer(qrString, appointmentId) {
+        const container = document.getElementById(`qr-code-container-${appointmentId}`);
+        const loading = document.getElementById(`qr-code-loading-${appointmentId}`);
+        if (!container || !loading) return;
+
+        // Prevent duplicates per appointment
+        if (this.renderedQRCodes && this.renderedQRCodes.has(appointmentId)) {
+            loading.style.display = 'none';
+            return;
+        }
+        // Clear any existing children before rendering
+        try {
+            while (container.firstChild) container.removeChild(container.firstChild);
+            container.appendChild(loading);
+        } catch (_) {}
+
+        // 1) Try Canvas
+        try {
+            await this.ensureQRCodeLib();
+            if (typeof QRCode !== 'undefined' && QRCode.toCanvas) {
+                const node = await this.generateQRWithQRCodeJS(qrString);
+                loading.style.display = 'none';
+                container.appendChild(node);
+                this.renderedQRCodes && this.renderedQRCodes.add(appointmentId);
+                return;
+            }
+        } catch (_) {}
+
+        // 2) Try DataURL image via QRCode.toDataURL
+        try {
+            await this.ensureQRCodeLib();
+            if (typeof QRCode !== 'undefined' && QRCode.toDataURL) {
+                const dataUrl = await new Promise((resolve, reject) => {
+                    QRCode.toDataURL(qrString, { width: 200, margin: 2, errorCorrectionLevel: 'M' }, (err, url) => {
+                        if (err) return reject(err);
+                        resolve(url);
+                    });
+                });
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                img.alt = 'Appointment QR Code';
+                img.style.maxWidth = '180px';
+                img.style.maxHeight = '180px';
+                img.style.borderRadius = '4px';
+                img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                loading.style.display = 'none';
+                container.appendChild(img);
+                this.renderedQRCodes && this.renderedQRCodes.add(appointmentId);
+                return;
+            }
+        } catch (_) {}
+
+        // 3) Final fallback: external generator (no keys, HTTPS)
+        try {
+            const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrString)}`;
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Appointment QR Code';
+            img.style.maxWidth = '180px';
+            img.style.maxHeight = '180px';
+            img.style.borderRadius = '4px';
+            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            img.onload = () => {
+                loading.style.display = 'none';
+                this.renderedQRCodes && this.renderedQRCodes.add(appointmentId);
+            };
+            img.onerror = () => {
+                loading.innerHTML = '<div style="color:#e53e3e">Failed to render QR</div>';
+            };
+            container.appendChild(img);
+        } catch (e) {
+            loading.innerHTML = '<div style="color:#e53e3e">Failed to render QR</div>';
+        }
     }
 
     async loadGoogleChartsAPI() {
